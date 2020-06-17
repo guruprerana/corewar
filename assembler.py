@@ -1,7 +1,4 @@
-class AlreadyDefined(Exception):
-    pass
-
-class InvalidLine(Exception):
+class InvalidInstruction(Exception):
     pass
 
 def readlines(filename):
@@ -50,7 +47,7 @@ def parse_operand(oprd, index, labels):
     adressing_mode = oprd[0]
     oprd = oprd[1:]
     if oprd in labels:
-        value = labels[oprd] - index
+        value = labels[oprd] -
     else:
         value = int(oprd)
 
@@ -69,7 +66,6 @@ def parse_instruction(txt, index, labels):
     operand1 = None
     operand2 = None
 
-
     for i, detail in enumerate(details):
         if i == 0:
             instruction = detail
@@ -80,6 +76,44 @@ def parse_instruction(txt, index, labels):
 
     if instruction:
         return instruction, operand1, operand2
+
+def is_writable(operand):
+    if operand[0] == '$':
+        return False
+    elif operand[0] in ['@', '#', 'r']:
+        return True
+    else:
+        raise InvalidInstruction
+
+def validate_instruction(inst):
+    name, op1, op2 = inst
+
+    if name in ['FORK', 'DIE']:
+        if op1 or op2:
+            raise InvalidInstruction
+
+    elif name in ['MOV', 'ADD', 'SUB', 'NOT', 'AND', 'OR', 'LS', 'AS']:
+        if not op1 or not op2:
+            raise InvalidInstruction
+        if not is_writable(op2):
+            raise InvalidInstruction
+    
+    elif name in ['CMP', 'LT']:
+        if not op1 or not op2:
+            raise InvalidInstruction
+
+    elif name in ['POP']:
+        if not op1 or op2:
+            raise InvalidInstruction
+        if not is_writable(op1):
+            raise InvalidInstruction
+
+    elif name in ['PUSH', 'JMP', 'BZ']:
+        if not op1 or op2:
+            raise InvalidInstruction
+    
+    else:
+        raise InvalidInstruction
 
 program0 = r'''
         MOV $127 r1  ; Initialize r1 to 127
