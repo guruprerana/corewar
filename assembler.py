@@ -154,23 +154,3 @@ def assembler(filename):
     for i in codes:
         aout.extend(int.to_bytes(i, 4, 'little'))
     return bytes(aout)
-
-program0 = r'''
-        MOV $127 r1  ; Initialize r1 to 127
-
-&loop:  ADD $-1 r1   ; Decrement  r1 by 1
-        BZ  $&end    ; If r1 is 0, move to end of program
-        JMP $&loop   ; Otherwise, jump to loop
-
-&end:   DIE
-'''
-
-program0 = program0.splitlines()
-program1 = [strip_comment(x) for x in program0]
-program1 = [x for x in program1 if x is not None]
-labels   = {}
-program2 = [extract_label(x, i, labels) for i, x in enumerate(program1)]
-
-program3 = [parse_instruction(x, i, labels) for i, x in enumerate(program2)]
-
-program4 = [instruction_code(x) for x in program3]
