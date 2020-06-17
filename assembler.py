@@ -1,3 +1,6 @@
+class AlreadyDefined(Exception):
+    pass
+
 class InvalidInstruction(Exception):
     pass
 
