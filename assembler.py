@@ -139,6 +139,22 @@ def instruction_code(instr):
 
     return name + opAmode + opA + opBmode + opB
 
+def assembler(filename):
+    labels, lineno, src, codes, aout = {}, 0, [], [], bytearray()
+    with open(filename, 'r') as stream:
+        for line in stream:
+            line = strip_comment(line)
+            if line is not None:
+                src.append(extract_label(line, lineno, labels))
+                lineno += 1
+    for i, line in enumerate(src):
+        instr = parse_instruction(line, i, labels)
+        validate_instruction(instr)
+        codes.append(instruction_code(instr))
+    for i in codes:
+        aout.extend(int.to_bytes(i, 4, 'little'))
+    return bytes(aout)
+
 program0 = r'''
         MOV $127 r1  ; Initialize r1 to 127
 
@@ -158,5 +174,3 @@ program2 = [extract_label(x, i, labels) for i, x in enumerate(program1)]
 program3 = [parse_instruction(x, i, labels) for i, x in enumerate(program2)]
 
 program4 = [instruction_code(x) for x in program3]
-
-print(program4)
