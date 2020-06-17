@@ -47,7 +47,7 @@ def parse_operand(oprd, index, labels):
     adressing_mode = oprd[0]
     oprd = oprd[1:]
     if oprd in labels:
-        value = labels[oprd] -
+        value = labels[oprd] - index
     else:
         value = int(oprd)
 
@@ -115,6 +115,30 @@ def validate_instruction(inst):
     else:
         raise InvalidInstruction
 
+def instruction_name_code(name):
+    return ['FORK', 'MOV', 'NOT', 'AND', 'OR', 'LS', 'AS', 'ADD',\
+        'SUB', 'CMP', 'LT', 'POP', 'PUSH', 'JMP', 'BZ', 'DIE'].index(name)
+
+def operand_mode_code(mode):
+    return ['$', '@', '#', 'r'].index(mode)
+
+def instruction_code(instr):
+    name = instruction_name_code(instr[0])
+
+    if not instr[1]:
+        opAmode, opA = 0, 0
+    else:
+        opAmode = operand_mode_code(instr[1][0]) << 4
+        opA = instr[1][1] << 8
+
+    if not instr[2]:
+        opBmode, opB = 0, 0
+    else:
+        opBmode = operand_mode_code(instr[2][0]) << 6
+        opB = instr[2][1] << 20
+
+    return name + opAmode + opA + opBmode + opB
+
 program0 = r'''
         MOV $127 r1  ; Initialize r1 to 127
 
@@ -133,4 +157,6 @@ program2 = [extract_label(x, i, labels) for i, x in enumerate(program1)]
 
 program3 = [parse_instruction(x, i, labels) for i, x in enumerate(program2)]
 
-print(program3)
+program4 = [instruction_code(x) for x in program3]
+
+print(program4)
