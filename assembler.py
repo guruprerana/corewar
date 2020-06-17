@@ -12,6 +12,7 @@ def readlines(filename):
 def strip_comment(line):
     if line is None:
         return
+
     idx = line.find(';')
     if idx >= 0:
         line = line[:idx]
@@ -23,6 +24,7 @@ def strip_comment(line):
 def extract_label(line, lineno, labels):
     if line is None:
         return
+
     start = line.find('&')
 
     if start >= 0:
@@ -39,18 +41,24 @@ def extract_label(line, lineno, labels):
         return line
     return line
 
+from corewar import of_signed
+
 def parse_operand(oprd, index, labels):
     if oprd is None:
         return
+
     adressing_mode = oprd[0]
     oprd = oprd[1:]
-    value = None
     if oprd in labels:
-        value = labels[oprd]
+        value = labels[oprd] - index
     else:
         value = int(oprd)
 
-    value = value % (2**12)
+    if value < 0:
+        value = of_signed(value, 12)
+    else:
+        value = value % (2**12)
+
     return adressing_mode, value
 
 def parse_instruction(txt, index, labels):
@@ -73,7 +81,6 @@ def parse_instruction(txt, index, labels):
     if instruction:
         return instruction, operand1, operand2
 
-
 program0 = r'''
         MOV $127 r1  ; Initialize r1 to 127
 
@@ -85,12 +92,8 @@ program0 = r'''
 '''
 
 program0 = program0.splitlines()
-program1 = []
-for x in program0:
-    stripped = strip_comment(x)
-    if stripped:
-        program1.append(stripped)
-
+program1 = [strip_comment(x) for x in program0]
+program1 = [x for x in program1 if x is not None]
 labels   = {}
 program2 = [extract_label(x, i, labels) for i, x in enumerate(program1)]
 
